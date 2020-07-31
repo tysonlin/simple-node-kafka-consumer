@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm-chart.fullname" . }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "helm-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "helm-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "helm-chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: KAFKA_CONFIG_PATH
+              value: "/config/kafka.config"
+            - name: KAFKA_PRODUCE_TOPIC
+              value: {{ .Values.kafka.consumer.topic }}
+            {{- if .Values.kafka.consumer.encryptedTopic }}
+            - name: KAFKA_PRODUCE_ENCRYPTED_TOPIC
+              value: {{ .Values.kafka.consumer.encryptedTopic }}
+            {{- end }}
+            {{- if .Values.kafka.consumer.ccloud }}
+            - name: CLUSTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-kafka-secret
+                  key: clusterApiKey
+            - name: CLUSTER_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-kafka-secret
+                  key: clusterApiSecret
+            {{- end }}
+            {{- if .Values.crypto }}
+            - name: CRYPTO_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-encryption-secret
+                  key: cryptoKey
+            - name: CRYPTO_IV
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-encryption-secret
+                  key: cryptoIv
+            {{- end }}
+            - name: DB_CONFIG_PATH
+              value: "/config-db/db.config"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helm-chart.fullname" . }}-db-secret
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: "/config"
+              readOnly: true
+            - name: config-db
+              mountPath: "/config-db"
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "helm-chart.fullname" . }}
+            items:
+            - key: "kafka.config"
+              path: "kafka.config"
+        - name: config-db
+          configMap:
+            name: {{ include "helm-chart.fullname" . }}-db
+            items:
+            - key: "db.config"
+              path: "db.config"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

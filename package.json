@@ -1,0 +1,26 @@
+{
+  "name": "simple-node-kafka-consumer",
+  "version": "0.0.0",
+  "description": "Simple nodejs which comsume message from kafka and make a mysql record",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tysonlin/simple-node-kafka-consumer.git"
+  },
+  "author": "Tyson Thanyapat Sirisongkol",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tysonlin/simple-node-kafka-consumer/issues"
+  },
+  "homepage": "https://github.com/tysonlin/simple-node-kafka-consumer#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-prom-bundle": "^6.1.0",
+    "mysql2": "^2.1.0",
+    "node-rdkafka": "^2.9.1",
+    "prom-client": "^12.0.0"
+  }
+}

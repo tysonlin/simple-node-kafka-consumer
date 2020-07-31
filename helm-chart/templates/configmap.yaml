@@ -1,0 +1,17 @@
+{{- if not .Values.kafka.consumer.fromExistingConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm-chart.fullname" . }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+data:
+    kafka.config: |
+      # Kafka
+      {{- if .Values.kafka.consumer.config }}
+      {{- .Values.kafka.consumer.config | nindent 6 }}
+      {{- end -}}
+      {{- if not .Values.kafka.consumer.config }}
+      bootstrap.servers=localhost:9092
+      {{- end }}
+{{- end }}

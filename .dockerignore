@@ -1,10 +1,12 @@
+# helm-chart
+helm-chart
+
 # helm runtime values
 runtime-values.yaml
 runtime
 
 # kafka config
 config
-*.config
 
 # Logs
 logs
