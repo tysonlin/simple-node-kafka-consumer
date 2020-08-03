@@ -6,11 +6,11 @@ metadata:
     {{- include "helm-chart.labels" . | nindent 4 }}
 data:
     db.config: |
-    # DB
-    {{- if .Values.database.config }}
-    {{- .Values.database.config | nindent 6 }}
-    {{- end -}}
-    {{- if not .Values.database.config }}
+      # DB
+{{- if .Values.database.config }}
+      {{- .Values.database.config | nindent 6 }}
+{{- end -}}
+{{- if (not .Values.database.config) }}
       host=localhost
       database=test
-    {{- end }}
+{{- end }}

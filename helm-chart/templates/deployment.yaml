@@ -36,34 +36,50 @@ spec:
           env:
             - name: KAFKA_CONFIG_PATH
               value: "/config/kafka.config"
-            - name: KAFKA_PRODUCE_TOPIC
+            - name: KAFKA_CONSUME_TOPIC
               value: {{ .Values.kafka.consumer.topic }}
             {{- if .Values.kafka.consumer.encryptedTopic }}
-            - name: KAFKA_PRODUCE_ENCRYPTED_TOPIC
+            - name: KAFKA_CONSUME_ENCRYPTED_TOPIC
               value: {{ .Values.kafka.consumer.encryptedTopic }}
             {{- end }}
             {{- if .Values.kafka.consumer.ccloud }}
             - name: CLUSTER_API_KEY
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.kafka.consumer.ccloud.fromExistingSecret  }}
+                  name: {{ .Values.kafka.consumer.ccloud.fromExistingSecret }}
+                  {{- else }}
                   name: {{ include "helm-chart.fullname" . }}-kafka-secret
+                  {{- end }}
                   key: clusterApiKey
             - name: CLUSTER_API_SECRET
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.kafka.consumer.ccloud.fromExistingSecret  }}
+                  name: {{ .Values.kafka.consumer.ccloud.fromExistingSecret }}
+                  {{- else }}
                   name: {{ include "helm-chart.fullname" . }}-kafka-secret
+                  {{- end }}
                   key: clusterApiSecret
             {{- end }}
             {{- if .Values.crypto }}
             - name: CRYPTO_KEY
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.crypto.fromExistingSecret  }}
+                  name: {{ .Values.crypto.fromExistingSecret }}
+                  {{- else }}
                   name: {{ include "helm-chart.fullname" . }}-encryption-secret
+                  {{- end }}
                   key: cryptoKey
             - name: CRYPTO_IV
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.crypto.fromExistingSecret  }}
+                  name: {{ .Values.crypto.fromExistingSecret }}
+                  {{- else }}
                   name: {{ include "helm-chart.fullname" . }}-encryption-secret
+                  {{- end }}
                   key: cryptoIv
             {{- end }}
             - name: DB_CONFIG_PATH
@@ -87,7 +103,7 @@ spec:
               readOnly: true
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 3000
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -102,7 +118,11 @@ spec:
       volumes:
         - name: config
           configMap:
+            {{- if .Values.kafka.consumer.fromExistingConfigMap  }}
+            name: {{ .Values.kafka.consumer.fromExistingConfigMap }}
+            {{- else }}
             name: {{ include "helm-chart.fullname" . }}
+            {{- end }}
             items:
             - key: "kafka.config"
               path: "kafka.config"

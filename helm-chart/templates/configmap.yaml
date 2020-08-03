@@ -1,4 +1,4 @@
-{{- if not .Values.kafka.consumer.fromExistingConfigMap }}
+{{- if (not .Values.kafka.consumer.fromExistingConfigMap) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
