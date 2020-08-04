@@ -5,8 +5,8 @@ const logger = require('./logger');
 const Kafka = require('node-rdkafka');
 const async = require('async');
 
-let maxQueueSize = process.env.MAX_QUEUE_SIZE || 10;
-let maxParallelHandles = process.env.MAX_PARALLEL_HANDLES || 10;
+const maxQueueSize = process.env.MAX_QUEUE_SIZE - 0|| 1000;
+const maxParallelHandles = process.env.MAX_PARALLEL_HANDLES - 0 || 200;
 
 exports.createConsumer = (config, onData) => {
     const envDefaultOptions = {
@@ -45,22 +45,22 @@ exports.createConsumer = (config, onData) => {
     let paused = false;
     
     const msgQueue = async.queue(async (data, done) => {
-        logger.debug(`Queued [${msgQueue.length()}] topic: ${data.topic}, offset: ${data.offset}, partition: ${data.partition}`);
+        logger.debug(`Handling [${msgQueue.length()}] topic: ${data.topic}, offset: ${data.offset}, partition: ${data.partition}`);
         await handleCB(data, onData);
         done();
     }, maxParallelHandles);
 
-    msgQueue.drain = async () => {
+    msgQueue.drain(async () => {
+        logger.info(`DRAINED Queue [${msgQueue.length()}] `);
         if (paused) {
           consumer.resume(consumer.assignments());
           paused = false;
-          logger.info(`RESUME Queue for ${consumer.assignments()}`);
+          logger.info(`RESUME Queue [${msgQueue.length()}] for ${JSON.stringify(consumer.assignments())}`);
         }
-    };
+    });
       
     const handleCB = async (data, handler) => {
         await handler(data);
-        logger.debug(`Processed [${msgQueue.length()}] topic: ${data.topic}, offset: ${data.offset}, partition: ${data.partition}`);
     };
 
     return new Promise((resolve, reject) => {
@@ -68,11 +68,12 @@ exports.createConsumer = (config, onData) => {
             .on('ready', () => resolve(consumer))
             .on('data', (data) => {
                 msgQueue.push(data);
-                 if (msgQueue.length() > maxQueueSize) {
-                   consumer.pause(consumer.assignments());
-                   paused = true;
-                   logger.info(`PAUSED Queue for ${consumer.assignments()}`);
-                 }
+                logger.debug(`Queued [${msgQueue.length()}] topic: ${data.topic}, offset: ${data.offset}, partition: ${data.partition}`);
+                if (msgQueue.length() > maxQueueSize && !paused) {
+                    consumer.pause(consumer.assignments());
+                    paused = true;
+                    logger.info(`PAUSED Queue [${msgQueue.length()}] for ${JSON.stringify(consumer.assignments())}`);
+                }
              })
             .on('subscribed', (topics) => logger.info(`Subscribed to: ${JSON.stringify(topics)}`));
 

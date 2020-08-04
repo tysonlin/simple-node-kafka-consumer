@@ -8,15 +8,15 @@ image:
   repository: tysonlin/simple-node-kafka-consumer
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 0.0.2
+  tag: 0.0.3
 
 logLevel: debug
 
 kafka:
   consumer:
     # back-pressure handling
-    maxQueueSize: 10
-    maxParallelHandles: 10
+    maxQueueSize: 1000
+    maxParallelHandles: 200
     # kafka topic to produce message to
     topic: test
     # kafka topic to produce encrypted message to
