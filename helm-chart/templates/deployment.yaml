@@ -94,6 +94,18 @@ spec:
                 secretKeyRef:
                   name: {{ include "helm-chart.fullname" . }}-db-secret
                   key: password
+            {{- with .Values.kafka.consumer.maxQueueSize }}
+            - name: MAX_QUEUE_SIZE
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.kafka.consumer.maxParallelHandles }}
+            - name: MAX_PARALLEL_HANDLES
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ . }}
+            {{- end }}
           volumeMounts:
             - name: config
               mountPath: "/config"

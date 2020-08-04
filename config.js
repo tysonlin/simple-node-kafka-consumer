@@ -1,5 +1,6 @@
 // https://github.com/confluentinc/examples/blob/5.5.1-post/clients/cloud/nodejs/config.js
 
+const logger = require('./logger');
 const fs = require('fs');
 const readline = require('readline');
 
@@ -9,7 +10,7 @@ function readAllLines(path) {
 
       let stream = fs.createReadStream(path);
       stream.on('error', (err) => {
-        console.warn('Read stream err', err);
+        logger.warn('Read stream err', err);
         resolve([]);
       });
       

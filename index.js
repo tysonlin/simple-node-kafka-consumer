@@ -31,6 +31,7 @@ const metricsMiddleware = promBundle({
 
 const crypto = require('crypto');
 
+const logger = require('./logger');
 const ConsumerFactory = require('./consumer');
 const DbFactory = require('./db');
 const ConfigReader = require('./config');
@@ -73,7 +74,7 @@ let consumer;
             value = Buffer.concat([decrypted, decipher.final()]);
         }
 
-        console.log(`Consumed ${(topic === encryptedTopic)?'encrypted ':''}record with key ${key} and value ${value} of partition ${partition} @ offset ${offset}. Updated total count to ${(topic === encryptedTopic)?++encryptedConsumerSeen:++consumerSeen}`);
+        logger.info(`Consumed ${(topic === encryptedTopic)?'encrypted ':''}record with key ${key} and value ${value} of partition ${partition} @ offset ${offset}. Updated total count to ${(topic === encryptedTopic)?++encryptedConsumerSeen:++consumerSeen}`);
 
         let query = 'INSERT INTO consumed (`key`,`value`,`partition`,`offset`,`topic`) VALUES (?,?,?,?,?);';
         let values = [key, value, partition, offset, topic];
@@ -81,11 +82,11 @@ let consumer;
         // db write
         dbPool.execute(query, values, (err, results, fields) => {
             if (err) {
-                console.error('DB Write Error: ');
-                console.error(err);
+                logger.error('DB Write Error: ');
+                logger.error(err);
             }
             else {
-                console.debug(`DB Write Success: ${JSON.stringify(results)}}`);
+                logger.debug(`DB Write Success insertId: ${results.insertId}`);
             }
         });
     });

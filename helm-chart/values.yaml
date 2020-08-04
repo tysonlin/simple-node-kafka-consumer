@@ -10,8 +10,13 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: 0.0.2
 
+logLevel: debug
+
 kafka:
   consumer:
+    # back-pressure handling
+    maxQueueSize: 10
+    maxParallelHandles: 10
     # kafka topic to produce message to
     topic: test
     # kafka topic to produce encrypted message to
