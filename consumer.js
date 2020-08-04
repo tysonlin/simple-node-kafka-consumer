@@ -17,9 +17,7 @@ exports.createConsumer = (config, onData) => {
 
     console.debug(`Creating consumer with config ${JSON.stringify(consumerOptions)}`);
 
-    const consumer = new Kafka.KafkaConsumer(consumerOptions, {
-            'auto.offset.reset': 'earliest'
-        });
+    const consumer = new Kafka.KafkaConsumer(consumerOptions, {});
 
     return new Promise((resolve, reject) => {
         consumer
