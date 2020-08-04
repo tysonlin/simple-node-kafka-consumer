@@ -1,6 +1,6 @@
 {
   "name": "simple-node-kafka-consumer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple nodejs which comsume message from kafka and make a mysql record",
   "main": "index.js",
   "scripts": {
