@@ -34,6 +34,18 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            {{- with .Values.kafka.consumer.maxQueueSize }}
+            - name: MAX_QUEUE_SIZE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.kafka.consumer.maxParallelHandles }}
+            - name: MAX_PARALLEL_HANDLES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ . }}
+            {{- end }}
             - name: KAFKA_CONFIG_PATH
               value: "/config/kafka.config"
             - name: KAFKA_CONSUME_TOPIC
@@ -94,18 +106,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "helm-chart.fullname" . }}-db-secret
                   key: password
-            {{- with .Values.kafka.consumer.maxQueueSize }}
-            - name: MAX_QUEUE_SIZE
-              value: {{ .Values.kafka.consumer.maxQueueSize  }}
-            {{- end }}
-            {{- with .Values.kafka.consumer.maxParallelHandles }}
-            - name: MAX_PARALLEL_HANDLES
-              value: {{ .Values.kafka.consumer.maxParallelHandles }}
-            {{- end }}
-            {{- with .Values.logLevel }}
-            - name: LOG_LEVEL
-              value: {{ .Values.logLevel }}
-            {{- end }}
           volumeMounts:
             - name: config
               mountPath: "/config"
