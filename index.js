@@ -22,11 +22,19 @@
 
 const express = require("express");
 const app = express();
+
+const RdkafkaStats = require('node-rdkafka-prometheus');
+const rdkafkaStats = new RdkafkaStats();
+
 const promBundle = require("express-prom-bundle");
 const metricsMiddleware = promBundle({
     includeMethod: true,
     includePath: true,
-    metricType: "summary"
+    metricType: "summary",
+    promClient: {
+        collectDefaultMetrics: {
+        }
+    },
 });
 
 const crypto = require('crypto');
@@ -90,6 +98,12 @@ let consumer;
             }
         });
     });
+
+    // register consumer stats
+    consumer.on('event.stats', msg => {
+        let stats = JSON.parse(msg.message);
+        rdkafkaStats.observe(stats);
+      });
 
     consumer.subscribe([topic, encryptedTopic]);
     consumer.consume();

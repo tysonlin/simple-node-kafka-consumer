@@ -32,6 +32,7 @@ exports.createConsumer = (config, onData) => {
                 logger.error(`Rebalace error : ${err}`);
             }
         },
+        'statistics.interval.ms' : config['statistics.interval.ms'] || 1000,
       };
 
     let consumerOptions = Object.assign(config, envDefaultOptions);
