@@ -69,7 +69,7 @@ exports.createConsumer = (config, onData) => {
             .on('data', (data) => {
                 msgQueue.push(data);
                 logger.debug(`Queued [${msgQueue.length()}] topic: ${data.topic}, offset: ${data.offset}, partition: ${data.partition}`);
-                if (msgQueue.length() > maxQueueSize && !paused) {
+                if (!paused && msgQueue.length() > maxQueueSize)  {
                     consumer.pause(consumer.assignments());
                     paused = true;
                     logger.info(`PAUSED Queue [${msgQueue.length()}] for ${JSON.stringify(consumer.assignments())}`);
