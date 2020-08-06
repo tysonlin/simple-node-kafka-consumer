@@ -54,6 +54,7 @@ app.use(metricsMiddleware);
 
 // kafka comsumer init
 let consumer;
+let interval;
 
 (async () => {
     let kafkaConfig = await ConfigReader.read(process.env.KAFKA_CONFIG_PATH || 'localhost.config');
@@ -106,7 +107,16 @@ let consumer;
       });
 
     consumer.subscribe([topic, encryptedTopic]);
-    consumer.consume();
+
+    // kafka consume batch size and interval
+    const kafkaBatchSize = process.env.KAFKA_BATCH_SIZE - 0 || 1000;
+    const kafkaBatchInterval = process.env.KAFKA_BATCH_INTERVAL_MS - 0 || 5000;
+    
+    interval = setInterval(function() {
+        // logger.debug(`Polling consume batch size: ${kafkaBatchSize}`);
+        consumer.consume(kafkaBatchSize);
+      }, kafkaBatchInterval);
+
 })();
 
 
@@ -116,6 +126,7 @@ const server = app.listen(process.env.PORT || 3000);
 function cleanup() {
     server.close(() => {
         consumer.disconnect(() => {
+            clearInterval(interval);
             process.exit(0);
         });
     });
